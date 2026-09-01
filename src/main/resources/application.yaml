@@ -3,10 +3,11 @@ spring:
     name: gen-ai-sb
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY}
+      api-key: dummy #${OPENAI_API_KEY}
+      base-url: http://localhost:12434/engines/v1
       chat:
-        option:
-          model: gpt-4o
+        options:
+          model: docker.io/ai/gemma3:4b #gpt-4o
     ollama:
       base-url: http://localhost:11434
       chat:

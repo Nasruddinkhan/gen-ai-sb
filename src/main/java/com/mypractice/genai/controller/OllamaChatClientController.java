@@ -1,6 +1,7 @@
 package com.mypractice.genai.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,7 @@ public class OllamaChatClientController {
             User formal & respect full tone.
             """;    private final ChatClient chatClient;
 
-    public OllamaChatClientController(@Qualifier("ollamaAIChatClient") ChatClient chatClient) {
+    public OllamaChatClientController(@Qualifier("openAIChatClient") ChatClient chatClient) {
         this.chatClient = chatClient;
     }
 
