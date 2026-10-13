@@ -8,6 +8,8 @@ The application currently supports:
 - Summarizing text with a direct Apache HTTP client call to OpenAI
 - Drafting professional emails from user input
 - Applying token probability controls through an Ollama-backed endpoint
+- Returning model output wrapped in a JSON response
+- Inspecting AI response details and token usage metadata
 - Running local model experiments with Ollama / Docker model endpoints
 
 ## Tech Stack
@@ -28,7 +30,7 @@ The `config` package contains `AppConfig`, which creates separate Spring AI chat
 
 Both chat clients use a simple logging advisor and a safeguard advisor. The safeguard blocks requests containing restricted words such as `password` or `username` and returns a fixed failure response.
 
-The `controller` package contains the REST API controllers for summarization, email drafting, and Ollama token probability options.
+The `controller` package contains the REST API controllers for summarization, email drafting, Ollama token probability options, JSON-wrapped responses, and AI response details.
 
 The `client` package contains `OpenAIClientService`, which demonstrates calling the OpenAI chat completions API directly with Apache HttpClient.
 
@@ -75,6 +77,14 @@ It uses a system prompt that asks the model to write clear, polite, concise, and
 The `/v1/api/ollama/chat/ai-revolution` endpoint accepts plain text in the request body and returns a concise response using the configured Ollama chat client.
 
 This endpoint uses `OllamaChatOptions` to set `maxTokens` to `100`, `topP` to `0.7`, and `topK` to `5`.
+
+### JSON Response
+
+The `/v1/api/ollama/chat/json-response` endpoint accepts a JSON request body with a `message` field, sends it to the configured Ollama chat client, and maps the AI output directly into a `JsonChatResponse` entity with a `response` field.
+
+### AI Response Details
+
+The `/v1/api/ollama/chat/response-details` endpoint accepts a JSON request body with a `message` field and returns the generated text with response metadata such as model, response id, finish reason, content filters, tool-call status, and token usage.
 
 ## Ollama Setup
 
