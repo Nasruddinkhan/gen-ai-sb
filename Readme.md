@@ -7,6 +7,7 @@ The application currently supports:
 - Summarizing text with a Spring AI `ChatClient`
 - Summarizing text with a direct Apache HTTP client call to OpenAI
 - Drafting professional emails from user input
+- Applying token probability controls through an Ollama-backed endpoint
 - Running local model experiments with Ollama / Docker model endpoints
 
 ## Tech Stack
@@ -25,7 +26,9 @@ The main Spring Boot application class is `GenAiSbApplication`.
 
 The `config` package contains `AppConfig`, which creates separate Spring AI chat clients for OpenAI and Ollama models.
 
-The `controller` package contains the REST API controllers for summarization and email drafting.
+Both chat clients use a simple logging advisor and a safeguard advisor. The safeguard blocks requests containing restricted words such as `password` or `username` and returns a fixed failure response.
+
+The `controller` package contains the REST API controllers for summarization, email drafting, and Ollama token probability options.
 
 The `client` package contains `OpenAIClientService`, which demonstrates calling the OpenAI chat completions API directly with Apache HttpClient.
 
@@ -63,11 +66,15 @@ This service builds the chat completions request manually with Apache HttpClient
 
 ### Draft Email
 
-The `/v1/api/ollama/chat/draft-email` endpoint accepts plain text in the request body and returns a professional email draft.
+The `/v1/api/ollama/chat/draft-email` endpoint accepts plain text in the request body and returns a professional email draft using the configured Ollama chat client.
 
 It uses a system prompt that asks the model to write clear, polite, concise, and formal emails.
 
-Note: the current controller injects the `openAIChatClient` bean for this endpoint.
+### Ollama Token Probability Options
+
+The `/v1/api/ollama/chat/ai-revolution` endpoint accepts plain text in the request body and returns a concise response using the configured Ollama chat client.
+
+This endpoint uses `OllamaChatOptions` to set `maxTokens` to `100`, `topP` to `0.7`, and `topK` to `5`.
 
 ## Ollama Setup
 
@@ -82,13 +89,7 @@ Open WebUI can be used as a browser-based interface for local model experiments.
 It can be started with Docker using host networking, persistent backend storage, and an Ollama-compatible base URL.
 
 ```bash
-docker run -d \
-  --network=host \
-  -v open-webui:/app/backend/data \
-  -e OLLAMA_BASE_URL=http://127.0.0.1:11434/engines/v1 \
-  --name open-webui \
-  --restart always \
-  ghcr.io/open-webui/open-webui:main
+docker run -d -p 3000:8080 -v open-webui:/app/backend/data -e OLLAMA_BASE_URL=http://localhost:12434/api/tags --name open-webui --restart always ghcr.io/open-webui/open-webui:main
 ```
 
 ## Hugging Face Script
