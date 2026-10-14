@@ -23,5 +23,6 @@ logging:
     root: INFO
     com.mypractice.genai: INFO
     com.springframework.ai: INFO
+    org.springframework.ai.chat.client.advisor: DEBUG
 
 
