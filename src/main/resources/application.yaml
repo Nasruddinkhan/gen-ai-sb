@@ -1,19 +1,17 @@
 spring:
   application:
     name: gen-ai-sb
+  profiles:
+    default: huggingface
   ai:
-    openai:
-      api-key: dummy #${OPENAI_API_KEY}
-      base-url: http://localhost:12434/engines/v1
-      chat:
-        options:
-          model: docker.io/ai/gemma3:4b #gpt-4o
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        options:
-          model: mistral:7b
-          temperature: 0.7
+    model:
+      chat: none
+      embedding: none
+      image: none
+      audio:
+        speech: none
+        transcription: none
+      moderation: none
 
 server:
   port: 8083
@@ -24,5 +22,3 @@ logging:
     com.mypractice.genai: INFO
     com.springframework.ai: INFO
     org.springframework.ai.chat.client.advisor: DEBUG
-
-

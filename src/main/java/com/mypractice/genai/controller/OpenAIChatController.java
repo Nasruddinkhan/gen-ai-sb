@@ -2,6 +2,7 @@ package com.mypractice.genai.controller;
 
 import com.mypractice.genai.client.OpenAIClientService;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Profile({"openai", "docker", "huggingface"})
 @RequestMapping("/v1/api/chat")
 public class OpenAIChatController{
 

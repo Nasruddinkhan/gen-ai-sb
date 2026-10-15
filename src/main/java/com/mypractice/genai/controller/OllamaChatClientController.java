@@ -1,6 +1,7 @@
 package com.mypractice.genai.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.metadata.ChatResponseMetadata;
 import org.springframework.ai.chat.metadata.Usage;
@@ -8,11 +9,15 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
+import java.util.Collections;
 import java.util.Set;
 
 @RestController
+@Profile("ollama")
 @RequestMapping("/v1/api/ollama/chat")
 public class OllamaChatClientController {
 
@@ -76,19 +81,28 @@ public class OllamaChatClientController {
         Generation result = response.getResult();
         AssistantMessage output = result != null ? result.getOutput() : null;
         ChatResponseMetadata metadata = response.getMetadata();
-        Usage usage = metadata.getUsage();
+        Usage usage = metadata != null ? metadata.getUsage() : null;
 
         return new AiResponseDetails(
                 output != null ? output.getText() : null,
-                metadata.getModel(),
-                metadata.getId(),
+                metadata != null ? metadata.getModel() : null,
+                metadata != null ? metadata.getId() : null,
                 result != null ? result.getMetadata().getFinishReason() : null,
-                result != null ? result.getMetadata().getContentFilters() : Set.of(),
+                result != null ? result.getMetadata().getContentFilters() : Collections.emptySet(),
                 response.hasToolCalls(),
                 usage != null ? usage.getPromptTokens() : null,
                 usage != null ? usage.getCompletionTokens() : null,
                 usage != null ? usage.getTotalTokens() : null
         );
+    }
+
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> stream(@RequestBody JsonChatRequest request) {
+        return chatClient.prompt()
+                .user(request.message())
+                .stream()
+                .content()
+                .onErrorResume(ex -> Flux.just("Streaming error: " + safeMessage(ex)));
     }
 
     public record JsonChatRequest(String message) {
@@ -107,5 +121,9 @@ public class OllamaChatClientController {
             Integer promptTokens,
             Integer completionTokens,
             Integer totalTokens) {
+    }
+
+    private String safeMessage(Throwable ex) {
+        return ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
     }
 }

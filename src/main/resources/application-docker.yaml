@@ -1,0 +1,10 @@
+spring:
+  ai:
+    model:
+      chat: openai
+    openai:
+      api-key: dummy
+      base-url: ${DOCKER_MODEL_BASE_URL:http://localhost:12434/engines/v1}
+      chat:
+        options:
+          model: ${DOCKER_MODEL:docker.io/ai/gemma3:4b}
