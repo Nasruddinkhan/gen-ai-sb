@@ -3,6 +3,8 @@ package com.mypractice.genai.prompting;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +17,13 @@ import java.util.Map;
 public class PromptingController {
 
     private final ChatClient chatClient;
+    private final PromptTemplate explanationTemplate;
 
-    public PromptingController(@Qualifier("chatClient") ChatClient chatClient) {
+    public PromptingController(
+            @Qualifier("chatClient") ChatClient chatClient,
+            @Value("classpath:prompts/explanation.st") Resource explanationResource) {
         this.chatClient = chatClient;
+        this.explanationTemplate = new PromptTemplate(explanationResource);
     }
 
     @PostMapping("/step-1-user-prompt")
@@ -56,13 +62,12 @@ public class PromptingController {
 
     @PostMapping("/step-3-template-prompt")
     public PromptingResponse templatePrompt(@RequestBody TemplatePromptRequest request) {
-        PromptTemplate promptTemplate = new PromptTemplate("""
+        PromptTemplate inlineTemplate = new PromptTemplate("""
                 Explain {topic} to a {audience}.
                 Use a {tone} tone.
                 Keep the answer under five bullet points.
                 """);
-
-        String renderedPrompt = promptTemplate.render(Map.of(
+        String renderedPrompt = inlineTemplate.render(Map.of(
                 "topic", request.topic(),
                 "audience", request.audience(),
                 "tone", request.tone()
@@ -130,6 +135,27 @@ public class PromptingController {
                 "Step 5",
                 "Output format prompt",
                 "Output-format prompting tells the model how to structure the answer.",
+                response
+        );
+    }
+
+    @PostMapping("/step-6-resource-template-prompt")
+    public PromptingResponse resourceTemplatePrompt(@RequestBody TemplatePromptRequest request) {
+        String renderedPrompt = explanationTemplate.render(Map.of(
+                "topic", request.topic(),
+                "audience", request.audience(),
+                "tone", request.tone()
+        ));
+
+        String response = chatClient.prompt()
+                .user(renderedPrompt)
+                .call()
+                .content();
+
+        return new PromptingResponse(
+                "Step 6",
+                "Resource prompt template",
+                "Loads a template from the classpath and fills its placeholders with request values.",
                 response
         );
     }

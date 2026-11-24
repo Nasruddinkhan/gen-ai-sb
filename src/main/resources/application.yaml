@@ -2,7 +2,7 @@ spring:
   application:
     name: gen-ai-sb
   profiles:
-    default: huggingface
+    default: openai
   ai:
     model:
       chat: none
